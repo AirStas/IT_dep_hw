@@ -7,33 +7,23 @@ import (
     "strings"
 )
 
-func GetParams() (string, string) {
-    if len(os.Args) >= 3 {
-        return os.Args[1], os.Args[2]
-    } else if len(os.Args) == 2 {
-        return os.Args[1], "output.txt"
-    } else {
-        return "input.txt", "output.txt"
-    }
-}
-
-func GetFile(input string) (string, error) {
+func ReadFile(input string) ([]string, error) {
     data, err := os.ReadFile(input)
     if err != nil {
-        return "", err
+        return nil, err
     }
     if len(data) == 0 {
-        return "", fmt.Errorf("empty file")
+        return nil, fmt.Errorf("empty file")
     }
-    return string(data), nil
+    return strings.Split(string(data), "\n"), nil
 }
 
-func FindUnique(data string) []string {
+func FindUniqueStrings(data []string) []string {
     mp := make(map[string]int)
-    for _, val := range strings.Split(data, "\n"){
+    for _, val := range data{
         mp[val] += 1
     }
-    ans := make([]string, 0)
+    ans := make([]string, 0, len(mp))
     for key, val := range mp {
         if val == 1 {
             ans = append(ans, key)
@@ -42,35 +32,55 @@ func FindUnique(data string) []string {
     return ans
 }
 
-func SortedStrings(data []string) []string{
+func SortedStrings(data []string) []string {
     sort.Strings(data)
     return data
 }
 
-func GiveFile(data []string, output string) error {
+func StringsToUpper(data []string) []string {
+    for key, val := range data{
+        data[key] = strings.ToUpper(val)
+    }
+    return data
+}
+
+func AddStringsSize(data []string) []string {
+    for key, val := range data{
+        data[key] = fmt.Sprintf("%v - %v bytes\n", val, len(val))
+    }
+    return data
+}
+
+func WriteFile(data []string, output string) error {
     file, err := os.Create(output)
     if err != nil {
         return err
     }
     defer file.Close()
     for _, val := range data{
-        file.WriteString(fmt.Sprintf("%v - %v bytes\n", strings.ToUpper(val), len(strings.ToUpper(val))))
+        file.WriteString(val)
     }
     return nil
 }
 
 func main(){
-    // Params from command line, default val: "input.txt", "output.txt"
-    input, output := GetParams()
+    if len(os.Args) < 3{
+        fmt.Printf("got %v argument(s), expected at least 3\n", len(os.Args))
+        return
+    }
+    input, output := os.Args[1], os.Args[2]
     
-    if data, err := GetFile(input); err != nil {
+    if data, err := ReadFile(input); err != nil {
         fmt.Println("reading unsuccessful: ", err)
     } else {
-        strs := SortedStrings(FindUnique(data))
-        if err := GiveFile(strs, output); err != nil {
+        strs := SortedStrings(FindUniqueStrings(data))
+        strs = StringsToUpper(strs)
+        strs = AddStringsSize(strs)
+    
+        if err := WriteFile(strs, output); err != nil {
             fmt.Println("writing unsuccessful: ", err)
-        } else {
-            fmt.Println("programm completed successfully")
+            return
         }
+        fmt.Println("programm completed successfully")
     }
 }

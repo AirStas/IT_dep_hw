@@ -1,0 +1,7 @@
+ - 0 bytes
+4RI4RO4KR4 - 10 bytes
+R4 - 2 bytes
+R4R4 - 4 bytes
+R4R4R - 5 bytes
+R4T4 - 4 bytes
+R3R3 - 4 bytes
